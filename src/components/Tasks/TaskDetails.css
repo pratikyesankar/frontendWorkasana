@@ -1,0 +1,36 @@
+.task-details-container {
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  font-size: 15px;
+}
+
+.task-details-sidebar {
+  border-right: 1px solid #ddd;
+  height: 100%;
+  min-height: 100vh;
+}
+
+.task-details-content {
+  background-color: white;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.form-select,
+.form-control {
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
