@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import API from '../../api/axiosConfig';
 import TaskDetails from './TaskDetails';
- 
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);

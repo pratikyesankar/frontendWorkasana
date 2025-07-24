@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,7 +11,7 @@ import {
   Legend,
 } from 'chart.js';
 import API from '../../api/axiosConfig';
-
+import Sidebar from '../Common/Sidebar.jsx';  
 
 ChartJS.register(
   CategoryScale,
@@ -61,20 +61,20 @@ const ReportsDashboard = () => {
 
     fetchReports();
   }, []);
- 
+  
   const lastWeekData = {
     labels: lastWeekTasks.map(task => task.name),
     datasets: [
       {
         label: 'Tasks Completed Last Week',
-        data: lastWeekTasks.map(task => task.timeToComplete),  
+        data: lastWeekTasks.map(task => task.timeToComplete), 
         backgroundColor: 'rgba(75, 192, 192, 0.6)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1,
       },
     ],
   };
- 
+  
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -83,7 +83,7 @@ const ReportsDashboard = () => {
       },
       title: {
         display: true,
-        text: 'Chart Title',  
+        text: 'Chart Title', 
       },
     },
   };
@@ -100,7 +100,7 @@ const ReportsDashboard = () => {
       },
     ],
   };
-   
+    
   const closedByTeamData = {
     labels: Object.keys(closedTasksByTeam),
     datasets: [
@@ -153,54 +153,59 @@ const ReportsDashboard = () => {
   };
 
   return (
-    <div className="reports-dashboard-container">
-      <h2>Reports and Visualizations</h2>
+    <div className="reports-page-container d-flex">  
+      <Sidebar /> 
+      <div className="main-content-area flex-grow-1 p-3">  
+        <div className="reports-dashboard-container">
+          <h2>Reports and Visualizations</h2>
 
-      {error && <p className="error-message">{error}</p>}
+          {error && <p className="error-message">{error}</p>}
 
-      <div className="chart-section">
-        <h3>Total Work Done Last Week</h3>
-        {lastWeekTasks.length > 0 ? (
-          <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Completed Last Week' } } }} data={lastWeekData} />
-        ) : (
-          <p>No tasks completed last week.</p>
-        )}
-      </div>
+          <div className="chart-section">
+            <h3>Total Work Done Last Week</h3>
+            {lastWeekTasks.length > 0 ? (
+              <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Completed Last Week' } } }} data={lastWeekData} />
+            ) : (
+              <p>No tasks completed last week.</p>
+            )}
+          </div>
 
-      <div className="chart-section">
-        <h3>Total Days of Work Pending</h3>
-        {pendingWork > 0 ? (
-          <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Total Days of Work Pending' } } }} data={pendingWorkData} />
-        ) : (
-          <p>No pending work.</p>
-        )}
-      </div>
+          <div className="chart-section">
+            <h3>Total Days of Work Pending</h3>
+            {pendingWork > 0 ? (
+              <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Total Days of Work Pending' } } }} data={pendingWorkData} />
+            ) : (
+              <p>No pending work.</p>
+            )}
+          </div>
 
-      <div className="chart-section">
-        <h3>Tasks Closed by Team</h3>
-        {Object.keys(closedTasksByTeam).length > 0 ? (
-          <Pie options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Closed by Team' } } }} data={closedByTeamData} />
-        ) : (
-          <p>No tasks closed by team.</p>
-        )}
-      </div>
+          <div className="chart-section">
+            <h3>Tasks Closed by Team</h3>
+            {Object.keys(closedTasksByTeam).length > 0 ? (
+              <Pie options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Closed by Team' } } }} data={closedByTeamData} />
+            ) : (
+              <p>No tasks closed by team.</p>
+            )}
+          </div>
 
-      <div className="chart-section">
-        <h3>Tasks Closed by Owner</h3>
-        {Object.keys(closedTasksByOwner).length > 0 ? (
-          <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Closed by Owner' } } }} data={closedByOwnerData} />
-        ) : (
-          <p>No tasks closed by owner.</p>
-        )}
-      </div>
+          <div className="chart-section">
+            <h3>Tasks Closed by Owner</h3>
+            {Object.keys(closedTasksByOwner).length > 0 ? (
+              <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Closed by Owner' } } }} data={closedByOwnerData} />
+            ) : (
+              <p>No tasks closed by owner.</p>
+            )}
+          </div>
 
-      <div className="chart-section">
-        <h3>Tasks Closed by Project</h3>
-        {Object.keys(closedTasksByProject).length > 0 ? (
-          <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Closed by Project' } } }} data={closedByProjectData} />
-        ) : (
-          <p>No tasks closed by project.</p>
-        )}
+          <div className="chart-section">
+            <h3>Tasks Closed by Project</h3>
+            {Object.keys(closedTasksByProject).length > 0 ? (
+              <Bar options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { ...chartOptions.plugins.title, text: 'Tasks Closed by Project' } } }} data={closedByProjectData} />
+            ) : (
+              <p>No tasks closed by project.</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

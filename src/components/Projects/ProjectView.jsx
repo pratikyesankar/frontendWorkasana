@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import API from '../../api/axiosConfig.jsx';
 import Modal from '../Common/Modal.jsx';
 import TaskDetails from '../Tasks/TaskDetails.jsx';
+import Sidebar from '../Common/Sidebar.jsx';  
 
 const ProjectView = () => {
   const [projects, setProjects] = useState([]);
@@ -18,7 +19,7 @@ const ProjectView = () => {
 
   const fetchProjectData = useCallback(async () => {
     try {
-     
+      
       const projectsRes = await API.get('/projects');
       setProjects(projectsRes.data);
 
@@ -66,7 +67,7 @@ const ProjectView = () => {
     ownerIds.map(id => users.find(u => u._id === id)?.name || 'Unknown').join(', ');
 
   const groupedTasks = tasks.reduce((acc, task) => {
-    const projectName = getProjectName(task.project);
+    const projectName = task.project ? getProjectName(task.project) : 'Unassigned Project';  
     if (!acc[projectName]) {
       acc[projectName] = [];
     }
@@ -75,120 +76,124 @@ const ProjectView = () => {
   }, {});
 
   return (
-    <div className="main-content-area">
-      <div className="page-header">
-        <h2>Create Moodboard</h2>
-      </div>
-      <p>
-        This project centers around compiling a digital moodboard to set the visual direction and tone for the brand identity.
-        The moodboard will showcase a curated selection of images, color palettes, typography samples, textures, and layout inspirations
-        that collectively evoke the intended mood and style.
-      </p>
-
-      {error && <p className="error-message">{error}</p>}
-
-      <h3>Sort by:</h3>
-      <div className="filter-bar">
-        <div className="filter-group">
-          <label>Project</label>
-          <select value={getFilterValue('project')} onChange={(e) => handleFilterChange('project', e.target.value)}>
-            <option value="">All Projects</option>
-            {projects.map((proj) => (
-              <option key={proj._id} value={proj._id}>{proj.name}</option>
-            ))}
-          </select>
+    <div className="project-view-page-container d-flex">  
+      <Sidebar /> 
+      <div className="main-content-area flex-grow-1 p-3"> 
+        <div className="page-header">
+          <h2>Create Moodboard</h2>
         </div>
+        <p>
+          This project centers around compiling a digital moodboard to set the visual direction and tone for the brand identity.
+          The moodboard will showcase a curated selection of images, color palettes, typography samples, textures, and layout inspirations
+          that collectively evoke the intended mood and style.
+        </p>
 
-        <div className="filter-group">
-          <label>Owner</label>
-          <select value={getFilterValue('owner')} onChange={(e) => handleFilterChange('owner', e.target.value)}>
-            <option value="">All Owners</option>
-            {users.map((user) => (
-              <option key={user._id} value={user._id}>{user.name}</option>
-            ))}
-          </select>
-        </div>
+        {error && <p className="error-message">{error}</p>}
 
-        <div className="filter-group">
-          <label>Tags</label>
-          <select value={getFilterValue('tags')} onChange={(e) => handleFilterChange('tags', e.target.value)}>
-            <option value="">All Tags</option>
-            {tags.map((tag) => (
-              <option key={tag._id} value={tag.name}>{tag.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label>Status</label>
-          <select value={getFilterValue('status')} onChange={(e) => handleFilterChange('status', e.target.value)}>
-            <option value="">All Statuses</option>
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            <option value="Blocked">Blocked</option>
-          </select>
-        </div>
-
-        <button className="btn btn-secondary" onClick={() => navigate('/projects')}>Reset Filters</button>
-      </div>
-
-      {Object.keys(groupedTasks).length > 0 ? (
-        Object.entries(groupedTasks).map(([projectName, projectTasks]) => (
-          <div key={projectName} className="project-group-tasks">
-            <div className="task-table-wrapper">
-              <table className="task-table">
-                <thead>
-                  <tr>
-                    <th>Task Name</th>
-                    <th>Status</th>
-                    <th>Owners</th>
-                    <th>Tags</th>
-                    <th>Time to Complete (days)</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projectTasks.map((task) => (
-                    <tr key={task._id}>
-                      <td>{task.name}</td>
-                      <td>
-                        <span className={`status-badge status-${task.status.replace(/\s/g, '').toLowerCase()}`}>
-                          {task.status}
-                        </span>
-                      </td>
-                      <td>{getOwnerNames(task.owners)}</td>
-                      <td>{task.tags.join(', ')}</td>
-                      <td>{task.timeToComplete}</td>
-                      <td>
-                        <button className="button-small btn btn-primary" onClick={() => setSelectedTask(task)}>
-                          View/Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <h3>Sort by:</h3>
+        <div className="filter-bar">
+          <div className="filter-group">
+            <label>Project</label>
+            <select value={getFilterValue('project')} onChange={(e) => handleFilterChange('project', e.target.value)}>
+              <option value="">All Projects</option>
+              {projects.map((proj) => (
+                <option key={proj._id} value={proj._id}>{proj.name}</option>
+              ))}
+            </select>
           </div>
-        ))
-      ) : (
-        <p className="no-data-message">No tasks found for the selected filters.</p>
-      )}
 
-      {selectedTask && (
-        <Modal isOpen={!!selectedTask} onClose={() => setSelectedTask(null)} title="Task Details">
-          <TaskDetails
-            task={selectedTask}
-            onClose={() => setSelectedTask(null)}
-            onUpdate={() => fetchProjectData()}
-            projects={projects}
-            teams={teams}
-            users={users}
-            tags={tags}
-          />
-        </Modal>
-      )}
+          <div className="filter-group">
+            <label>Owner</label>
+            <select value={getFilterValue('owner')} onChange={(e) => handleFilterChange('owner', e.target.value)}>
+              <option value="">All Owners</option>
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>{user.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Tags</label>
+            <select value={getFilterValue('tags')} onChange={(e) => handleFilterChange('tags', e.target.value)}>
+              <option value="">All Tags</option>
+              {tags.map((tag) => (
+                <option key={tag._id} value={tag.name}>{tag.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Status</label>
+            <select value={getFilterValue('status')} onChange={(e) => handleFilterChange('status', e.target.value)}>
+              <option value="">All Statuses</option>
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Blocked">Blocked</option>
+            </select>
+          </div>
+
+          <button className="btn btn-secondary" onClick={() => navigate('/projects')}>Reset Filters</button>
+        </div>
+
+        {Object.keys(groupedTasks).length > 0 ? (
+          Object.entries(groupedTasks).map(([projectName, projectTasks]) => (
+            <div key={projectName} className="project-group-tasks">
+               
+              <div className="task-table-wrapper">
+                <table className="task-table">
+                  <thead>
+                    <tr>
+                      <th>Task Name</th>
+                      <th>Status</th>
+                      <th>Owners</th>
+                      <th>Tags</th>
+                      <th>Time to Complete (days)</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projectTasks.map((task) => (
+                      <tr key={task._id}>
+                        <td>{task.name}</td>
+                        <td>
+                          <span className={`status-badge status-${task.status.replace(/\s/g, '').toLowerCase()}`}>
+                            {task.status}
+                          </span>
+                        </td>
+                        <td>{getOwnerNames(task.owners)}</td>
+                        <td>{task.tags.join(', ')}</td>
+                        <td>{task.timeToComplete}</td>
+                        <td>
+                          <button className="button-small btn btn-primary" onClick={() => setSelectedTask(task)}>
+                            View/Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="no-data-message">No tasks found for the selected filters.</p>
+        )}
+
+        {selectedTask && (
+          <Modal isOpen={!!selectedTask} onClose={() => setSelectedTask(null)} title="Task Details">
+            <TaskDetails
+              task={selectedTask}
+              onClose={() => setSelectedTask(null)}
+              onUpdate={() => fetchProjectData()}
+              projects={projects}
+              teams={teams}
+              users={users}
+              tags={tags}
+            />
+          </Modal>
+        )}
+      </div>
     </div>
   );
 };
