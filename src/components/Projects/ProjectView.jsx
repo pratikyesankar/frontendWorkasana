@@ -1,9 +1,11 @@
- import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import API from '../../api/axiosConfig.jsx';
 import Modal from '../Common/Modal.jsx';
 import TaskDetails from '../Tasks/TaskDetails.jsx';
-import Sidebar from '../Common/Sidebar.jsx';  
+import Sidebar from '../Common/Sidebar.jsx';
+import { toast, ToastContainer } from 'react-toastify';  
+import 'react-toastify/dist/ReactToastify.css';  
 
 const ProjectView = () => {
   const [projects, setProjects] = useState([]);
@@ -19,7 +21,6 @@ const ProjectView = () => {
 
   const fetchProjectData = useCallback(async () => {
     try {
-      
       const projectsRes = await API.get('/projects');
       setProjects(projectsRes.data);
 
@@ -67,7 +68,7 @@ const ProjectView = () => {
     ownerIds.map(id => users.find(u => u._id === id)?.name || 'Unknown').join(', ');
 
   const groupedTasks = tasks.reduce((acc, task) => {
-    const projectName = task.project ? getProjectName(task.project) : 'Unassigned Project';  
+    const projectName = task.project ? getProjectName(task.project) : 'Unassigned Project';
     if (!acc[projectName]) {
       acc[projectName] = [];
     }
@@ -75,10 +76,17 @@ const ProjectView = () => {
     return acc;
   }, {});
 
+ 
+  const handleTaskUpdate = () => {
+    fetchProjectData();  
+    setSelectedTask(null);  
+    toast.success('Task updated successfully!'); 
+  };
+
   return (
-    <div className="project-view-page-container d-flex">  
-      <Sidebar /> 
-      <div className="main-content-area flex-grow-1 p-3"> 
+    <div className="project-view-page-container d-flex">
+      <Sidebar />
+      <div className="main-content-area flex-grow-1 p-3">
         <div className="page-header">
           <h2>Create Moodboard</h2>
         </div>
@@ -139,7 +147,6 @@ const ProjectView = () => {
         {Object.keys(groupedTasks).length > 0 ? (
           Object.entries(groupedTasks).map(([projectName, projectTasks]) => (
             <div key={projectName} className="project-group-tasks">
-               
               <div className="task-table-wrapper">
                 <table className="task-table">
                   <thead>
@@ -161,8 +168,8 @@ const ProjectView = () => {
                             {task.status}
                           </span>
                         </td>
-                        <td>{getOwnerNames(task.owners)}</td>
-                        <td>{task.tags.join(', ')}</td>
+                        <td>{task.owners ? getOwnerNames(task.owners) : 'N/A'}</td>  
+                        <td>{task.tags ? task.tags.join(', ') : 'N/A'}</td>  
                         <td>{task.timeToComplete}</td>
                         <td>
                           <button className="button-small btn btn-primary" onClick={() => setSelectedTask(task)}>
@@ -185,7 +192,7 @@ const ProjectView = () => {
             <TaskDetails
               task={selectedTask}
               onClose={() => setSelectedTask(null)}
-              onUpdate={() => fetchProjectData()}
+              onUpdate={handleTaskUpdate} 
               projects={projects}
               teams={teams}
               users={users}
@@ -194,6 +201,7 @@ const ProjectView = () => {
           </Modal>
         )}
       </div>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 };

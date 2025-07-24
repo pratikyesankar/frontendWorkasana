@@ -92,7 +92,7 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
         <div className="col-md-2 task-details-sidebar bg-light p-3">
           <button
             className="btn btn-outline-secondary w-40 mb-3"
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate('/reports')}
           >
             Back
           </button>
