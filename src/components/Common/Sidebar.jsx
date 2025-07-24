@@ -30,12 +30,13 @@ const Sidebar = () => {
         <Link to="/reports" className="nav-item">
           <i className="material-icons icon">assessment</i> Reports
         </Link>
-      </nav>
-      <div className="sidebar-footer">
+         <div className="sidebar-footer">
         <button onClick={handleLogout} className="logout-button">
           <i className="material-icons icon">logout</i> Logout
         </button>
       </div>
+      </nav>
+     
     </aside>
   );
 };

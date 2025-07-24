@@ -1,9 +1,11 @@
- import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import API from '../../api/axiosConfig';
 import TeamDetails from './TeamDetails';
 import Modal from '../Common/Modal';
-import Sidebar from '../Common/Sidebar.jsx';  
+import Sidebar from '../Common/Sidebar.jsx';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const TeamView = () => {
   const [teams, setTeams] = useState([]);
@@ -13,10 +15,11 @@ const TeamView = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isNewTeamModalOpen, setIsNewTeamModalOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
-  
+  const [newTeamDescription, setNewTeamDescription] = useState('');  
+
   const [newTeamMembers, setNewTeamMembers] = useState(['', '', '']);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -58,7 +61,6 @@ const TeamView = () => {
   const handleCloseDetails = () => {
     setSelectedTeam(null);
   };
-  
 
   const handleNewMemberChange = (index, value) => {
     const updatedMembers = [...newTeamMembers];
@@ -69,7 +71,6 @@ const TeamView = () => {
   const handleCreateNewTeam = async (e) => {
     e.preventDefault();
     setError('');
-    setMessage('');
 
     if (!newTeamName.trim()) {
       setError('Team name cannot be empty.');
@@ -79,27 +80,29 @@ const TeamView = () => {
     try {
       const teamData = {
         name: newTeamName.trim(),
-        description: `Team for ${newTeamName.trim()}`,
-        
+        description: newTeamDescription.trim(),  
         members: newTeamMembers.filter(name => name.trim()),
       };
 
       const res = await API.post('/teams', teamData);
-      setMessage(`Team "${res.data.name}" created successfully!`);
-      setIsNewTeamModalOpen(false); 
-      setNewTeamName('');  
-      setNewTeamMembers(['', '', '']);  
+      toast.success(`Team "${res.data.name}" created successfully!`);
+      setIsNewTeamModalOpen(false);
+      setNewTeamName('');
+      setNewTeamDescription('');  
+      setNewTeamMembers(['', '', '']);
       fetchTeamsAndSupportData();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create new team.');
+      const errorMessage = err.response?.data?.error || 'Failed to create new team.';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Create team error:', err);
     }
   };
 
   return (
-    <div className="team-view-page-container d-flex">  
-      <Sidebar />  
-      <div className="main-content-area flex-grow-1 p-3"> 
+    <div className="team-view-page-container d-flex">
+      <Sidebar />
+      <div className="main-content-area flex-grow-1 p-3">
         <div className="team-view-container">
           <div className="content-header">
             <h2>Teams</h2>
@@ -107,9 +110,7 @@ const TeamView = () => {
               + New Team
             </button>
           </div>
-
           {error && <p className="error-message">{error}</p>}
-          {message && <p className="success-message">{message}</p>}
 
           {teams.length > 0 ? (
             <div className="row">
@@ -118,7 +119,8 @@ const TeamView = () => {
                   <div className="panel panel-default">
                     <div className="panel-body">
                       <h4>{team.name}</h4>
-                      <p><strong>Description:</strong> {team.description}</p>
+                     
+                      {team.description && <p><strong>Description:</strong> {team.description}</p>}
                     </div>
                   </div>
                 </div>
@@ -128,7 +130,6 @@ const TeamView = () => {
             <p className="no-data-message">No teams available. Create a new team!</p>
           )}
 
-        
           <Modal
             isOpen={!!selectedTeam}
             onClose={handleCloseDetails}
@@ -144,15 +145,14 @@ const TeamView = () => {
             )}
           </Modal>
 
-        
           <Modal
             isOpen={isNewTeamModalOpen}
             onClose={() => {
               setIsNewTeamModalOpen(false);
-              setNewTeamName('');  
-              setNewTeamMembers(['', '', '']); 
-              setError(''); 
-              setMessage('');  
+              setNewTeamName('');
+              setNewTeamDescription(''); 
+              setNewTeamMembers(['', '', '']);
+              setError('');
             }}
             title="Create New Team"
           >
@@ -169,10 +169,9 @@ const TeamView = () => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label>Add Members</label>
-                
+
                 {newTeamMembers.map((member, index) => (
                   <div key={index} className="member-input-group mb-3">
                     <input
@@ -184,7 +183,19 @@ const TeamView = () => {
                     />
                   </div>
                 ))}
-                
+              </div>
+
+              {/* New Description Form Group */}
+              <div className="form-group">
+                <label htmlFor="newTeamDescription">Description</label>
+                <textarea
+                  id="newTeamDescription"
+                  className="form-control"
+                  placeholder="Enter Team Description (optional)"
+                  value={newTeamDescription}
+                  onChange={(e) => setNewTeamDescription(e.target.value)}
+                  rows="3" 
+                ></textarea>
               </div>
 
               {error && <p className="error-message">{error}</p>}
@@ -194,10 +205,10 @@ const TeamView = () => {
                   className="btn btn-secondary"
                   onClick={() => {
                     setIsNewTeamModalOpen(false);
-                    setNewTeamName('');  
-                    setNewTeamMembers(['', '', '']);  
-                    setError('');  
-                    setMessage(''); 
+                    setNewTeamName('');
+                    setNewTeamDescription('');  
+                    setNewTeamMembers(['', '', '']);
+                    setError('');
                   }}
                 >
                   Cancel
@@ -210,6 +221,7 @@ const TeamView = () => {
           </Modal>
         </div>
       </div>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 };
