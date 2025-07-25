@@ -15,11 +15,11 @@ const TeamView = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isNewTeamModalOpen, setIsNewTeamModalOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
-  const [newTeamDescription, setNewTeamDescription] = useState('');  
+  const [newTeamDescription, setNewTeamDescription] = useState('');
 
-  const [newTeamMembers, setNewTeamMembers] = useState(['', '', '']);
+  
+  const [newTeamOwnersInput, setNewTeamOwnersInput] = useState(['', '', '']);
   const [error, setError] = useState('');
-
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,12 +60,14 @@ const TeamView = () => {
 
   const handleCloseDetails = () => {
     setSelectedTeam(null);
+    fetchTeamsAndSupportData();
   };
 
-  const handleNewMemberChange = (index, value) => {
-    const updatedMembers = [...newTeamMembers];
-    updatedMembers[index] = value;
-    setNewTeamMembers(updatedMembers);
+   
+  const handleOwnerInputChange = (index, value) => {
+    const updatedInputs = [...newTeamOwnersInput];
+    updatedInputs[index] = value;
+    setNewTeamOwnersInput(updatedInputs);
   };
 
   const handleCreateNewTeam = async (e) => {
@@ -77,19 +79,23 @@ const TeamView = () => {
       return;
     }
 
+    
+    const ownersToSend = newTeamOwnersInput.map(name => name.trim()).filter(name => name !== '');
+
     try {
       const teamData = {
         name: newTeamName.trim(),
-        description: newTeamDescription.trim(),  
-        members: newTeamMembers.filter(name => name.trim()),
+        description: newTeamDescription.trim(),
+        owners: ownersToSend,  
       };
 
       const res = await API.post('/teams', teamData);
       toast.success(`Team "${res.data.name}" created successfully!`);
       setIsNewTeamModalOpen(false);
       setNewTeamName('');
-      setNewTeamDescription('');  
-      setNewTeamMembers(['', '', '']);
+      setNewTeamDescription('');
+      setNewTeamOwnersInput(['', '', '']);  
+      setError('');
       fetchTeamsAndSupportData();
     } catch (err) {
       const errorMessage = err.response?.data?.error || 'Failed to create new team.';
@@ -119,7 +125,12 @@ const TeamView = () => {
                   <div className="panel panel-default">
                     <div className="panel-body">
                       <h4>{team.name}</h4>
-                     
+                      <h6>
+                        <strong>Owners : </strong>{' '}
+                        {team.owners && team.owners.length > 0
+                          ? team.owners.join(', ')
+                          : 'N/A'}
+                      </h6>
                       {team.description && <p><strong>Description:</strong> {team.description}</p>}
                     </div>
                   </div>
@@ -150,8 +161,8 @@ const TeamView = () => {
             onClose={() => {
               setIsNewTeamModalOpen(false);
               setNewTeamName('');
-              setNewTeamDescription(''); 
-              setNewTeamMembers(['', '', '']);
+              setNewTeamDescription('');
+              setNewTeamOwnersInput(['', '', '']);  
               setError('');
             }}
             title="Create New Team"
@@ -169,23 +180,25 @@ const TeamView = () => {
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>Add Members</label>
 
-                {newTeamMembers.map((member, index) => (
-                  <div key={index} className="member-input-group mb-3">
+              <div className="form-group">
+                <label>Owners</label>
+                 
+                {[0, 1, 2].map((index) => (  
+                  <div key={index} className="input-group mb-2">
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Member Name"
-                      value={member}
-                      onChange={(e) => handleNewMemberChange(index, e.target.value)}
+                      placeholder={`Owner ${index + 1} Name`}
+                      value={newTeamOwnersInput[index] || ''}  
+                      onChange={(e) => handleOwnerInputChange(index, e.target.value)}
                     />
+                 
                   </div>
                 ))}
+              
               </div>
 
-              {/* New Description Form Group */}
               <div className="form-group">
                 <label htmlFor="newTeamDescription">Description</label>
                 <textarea
@@ -194,7 +207,7 @@ const TeamView = () => {
                   placeholder="Enter Team Description (optional)"
                   value={newTeamDescription}
                   onChange={(e) => setNewTeamDescription(e.target.value)}
-                  rows="3" 
+                  rows="3"
                 ></textarea>
               </div>
 
@@ -206,8 +219,8 @@ const TeamView = () => {
                   onClick={() => {
                     setIsNewTeamModalOpen(false);
                     setNewTeamName('');
-                    setNewTeamDescription('');  
-                    setNewTeamMembers(['', '', '']);
+                    setNewTeamDescription('');
+                    setNewTeamOwnersInput(['', '', '']);
                     setError('');
                   }}
                 >

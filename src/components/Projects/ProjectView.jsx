@@ -4,8 +4,8 @@ import API from '../../api/axiosConfig.jsx';
 import Modal from '../Common/Modal.jsx';
 import TaskDetails from '../Tasks/TaskDetails.jsx';
 import Sidebar from '../Common/Sidebar.jsx';
-import { toast, ToastContainer } from 'react-toastify';  
-import 'react-toastify/dist/ReactToastify.css';  
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProjectView = () => {
   const [projects, setProjects] = useState([]);
@@ -34,12 +34,12 @@ const ProjectView = () => {
       setTeams(teamsRes.data);
 
       const queryParams = new URLSearchParams(location.search);
-      const queryString = queryParams.toString();
-      const tasksRes = await API.get(`/tasks?${queryString}`);
+      const tasksRes = await API.get(`/tasks?${queryParams.toString()}`);
+      console.log('Fetched tasks:', tasksRes.data); // Debug log
       setTasks(tasksRes.data);
     } catch (err) {
       setError('Failed to fetch project data.');
-      console.error('ProjectView data fetch error:', err);
+      console.error('Error fetching data:', err);
     }
   }, [location.search]);
 
@@ -58,29 +58,13 @@ const ProjectView = () => {
   };
 
   const getFilterValue = (filterName) => {
-    const queryParams = new URLSearchParams(location.search);
-    return queryParams.get(filterName) || '';
+    return new URLSearchParams(location.search).get(filterName) || '';
   };
 
-  const getProjectName = (projectId) => projects.find(p => p._id === projectId)?.name || 'N/A';
-  const getTeamName = (teamId) => teams.find(t => t._id === teamId)?.name || 'N/A';
-  const getOwnerNames = (ownerIds) =>
-    ownerIds.map(id => users.find(u => u._id === id)?.name || 'Unknown').join(', ');
-
-  const groupedTasks = tasks.reduce((acc, task) => {
-    const projectName = task.project ? getProjectName(task.project) : 'Unassigned Project';
-    if (!acc[projectName]) {
-      acc[projectName] = [];
-    }
-    acc[projectName].push(task);
-    return acc;
-  }, {});
-
- 
   const handleTaskUpdate = () => {
-    fetchProjectData();  
-    setSelectedTask(null);  
-    toast.success('Task updated successfully!'); 
+    fetchProjectData();
+    setSelectedTask(null);
+    toast.success('Task updated successfully!');
   };
 
   return (
@@ -91,9 +75,9 @@ const ProjectView = () => {
           <h2>Create Moodboard</h2>
         </div>
         <p>
-          This project centers around compiling a digital moodboard to set the visual direction and tone for the brand identity.
-          The moodboard will showcase a curated selection of images, color palettes, typography samples, textures, and layout inspirations
-          that collectively evoke the intended mood and style.
+          This project focuses on building a digital moodboard to define the brand identity's visual direction and tone. It will
+          include curated images, color palettes, typography samples, textures, and layout inspirations to convey the desired mood
+          and style.
         </p>
 
         {error && <p className="error-message">{error}</p>}
@@ -105,7 +89,9 @@ const ProjectView = () => {
             <select value={getFilterValue('project')} onChange={(e) => handleFilterChange('project', e.target.value)}>
               <option value="">All Projects</option>
               {projects.map((proj) => (
-                <option key={proj._id} value={proj._id}>{proj.name}</option>
+                <option key={proj._id} value={proj._id}>
+                  {proj.name}
+                </option>
               ))}
             </select>
           </div>
@@ -115,7 +101,9 @@ const ProjectView = () => {
             <select value={getFilterValue('owner')} onChange={(e) => handleFilterChange('owner', e.target.value)}>
               <option value="">All Owners</option>
               {users.map((user) => (
-                <option key={user._id} value={user._id}>{user.name}</option>
+                <option key={user._id} value={user.name}>
+                  {user.name}
+                </option>
               ))}
             </select>
           </div>
@@ -125,7 +113,9 @@ const ProjectView = () => {
             <select value={getFilterValue('tags')} onChange={(e) => handleFilterChange('tags', e.target.value)}>
               <option value="">All Tags</option>
               {tags.map((tag) => (
-                <option key={tag._id} value={tag.name}>{tag.name}</option>
+                <option key={tag._id} value={tag.name}>
+                  {tag.name}
+                </option>
               ))}
             </select>
           </div>
@@ -141,48 +131,46 @@ const ProjectView = () => {
             </select>
           </div>
 
-          <button className="btn btn-secondary" onClick={() => navigate('/projects')}>Reset Filters</button>
+          <button className="btn btn-secondary" onClick={() => navigate('/projects')}>
+            Reset Filters
+          </button>
         </div>
 
-        {Object.keys(groupedTasks).length > 0 ? (
-          Object.entries(groupedTasks).map(([projectName, projectTasks]) => (
-            <div key={projectName} className="project-group-tasks">
-              <div className="task-table-wrapper">
-                <table className="task-table">
-                  <thead>
-                    <tr>
-                      <th>Task Name</th>
-                      <th>Status</th>
-                      <th>Owners</th>
-                      <th>Tags</th>
-                      <th>Time to Complete (days)</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projectTasks.map((task) => (
-                      <tr key={task._id}>
-                        <td>{task.name}</td>
-                        <td>
-                          <span className={`status-badge status-${task.status.replace(/\s/g, '').toLowerCase()}`}>
-                            {task.status}
-                          </span>
-                        </td>
-                        <td>{task.owners ? getOwnerNames(task.owners) : 'N/A'}</td>  
-                        <td>{task.tags ? task.tags.join(', ') : 'N/A'}</td>  
-                        <td>{task.timeToComplete}</td>
-                        <td>
-                          <button className="button-small btn btn-primary" onClick={() => setSelectedTask(task)}>
-                            View/Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))
+        {tasks.length > 0 ? (
+          <div className="task-table-wrapper">
+            <table className="task-table">
+              <thead>
+                <tr>
+                  <th>Task Name</th>
+                  <th>Status</th>
+                  <th>Owners</th>
+                  <th>Tags</th>
+                  <th>Time to Complete (days)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((task, index) => (
+                  <tr key={task._id || index}>  
+                    <td>{task.name}</td>
+                    <td>
+                      <span className={`status-badge status-${task.status.replace(/\s/g, '').toLowerCase()}`}>
+                        {task.status}
+                      </span>
+                    </td>
+                    <td>{task.owners || 'N/A'}</td>
+                    <td>{task.tags ? task.tags.join(', ') : 'N/A'}</td>
+                    <td>{task.timeToComplete || 'N/A'}</td>
+                    <td>
+                      <button className="button-small btn btn-primary" onClick={() => setSelectedTask(task)}>
+                        View/Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <p className="no-data-message">No tasks found for the selected filters.</p>
         )}
@@ -192,7 +180,7 @@ const ProjectView = () => {
             <TaskDetails
               task={selectedTask}
               onClose={() => setSelectedTask(null)}
-              onUpdate={handleTaskUpdate} 
+              onUpdate={handleTaskUpdate}
               projects={projects}
               teams={teams}
               users={users}
@@ -201,7 +189,17 @@ const ProjectView = () => {
           </Modal>
         )}
       </div>
-      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };

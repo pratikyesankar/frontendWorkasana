@@ -1,7 +1,7 @@
- import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/axiosConfig.jsx';
-import './TaskDetails.css'
+import './TaskDetails.css';
 
 const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) => {
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
     name: '',
     project: '',
     team: '',
-    owners: [],
+    owners: [], 
     tags: [],
     dueDate: '',
     status: 'In Progress',
@@ -19,13 +19,17 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
 
   useEffect(() => {
     if (task) {
+      
+      const formattedDueDate = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+
       setFormData({
         name: task.name || '',
-        project: task.project?._id || '',
-        team: task.team?._id || '',
-        owners: task.owners?.map(owner => owner._id) || [],
+        project: task.project?._id || task.project || '',
+        team: task.team?._id || task.team || '',
+      
+        owners: task.owners || [],
         tags: task.tags || [],
-        dueDate: task.dueDate || '',
+        dueDate: formattedDueDate,
         status: task.status || 'In Progress',
         timeRemaining: task.timeToComplete || 0,
       });
@@ -41,6 +45,7 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
   };
 
   const handleOwnersChange = (e) => {
+   
     const selectedOwners = Array.from(e.target.selectedOptions, option => option.value);
     setFormData(prev => ({
       ...prev,
@@ -59,12 +64,19 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const updatedTask = await API.post(`/tasks/${task._id}`, {
+     
+      const payload = {
         ...formData,
         timeToComplete: formData.timeRemaining,
-      });
-      onUpdate();
-      onClose();
+      };
+     
+      if (!payload.dueDate) {
+        delete payload.dueDate;
+      }
+
+      const updatedTask = await API.post(`/tasks/${task._id}`, payload);
+      onUpdate();  
+      onClose();  
     } catch (err) {
       setError('Failed to update task.');
       console.error('Task update error:', err);
@@ -73,11 +85,17 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
 
   const handleMarkAsComplete = async () => {
     try {
-      const updatedTask = await API.post(`/tasks/${task._id}`, {
+      const payload = {
         ...formData,
         status: 'Completed',
-        timeRemaining: 0,
-      });
+        timeToComplete: 0,  
+      };
+       
+      if (!payload.dueDate) {
+        delete payload.dueDate;
+      }
+
+      const updatedTask = await API.post(`/tasks/${task._id}`, payload);
       onUpdate();
       onClose();
     } catch (err) {
@@ -86,19 +104,16 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
     }
   };
 
+  
+  if (!task) {
+    return null;
+  }
+
   return (
     <div className="task-details-container">
       <div className="row">
-        <div className="col-md-2 task-details-sidebar bg-light p-3">
-          <button
-            className="btn btn-outline-secondary w-40 mb-3"
-            onClick={() => navigate('/reports')}
-          >
-            Back
-          </button>
-           
-        </div>
-        <div className="col-md-10 task-details-content p-4">
+        
+        <div className="col-md-12 task-details-content p-4"> 
           <h2 className="mb-4">Task: {formData.name}</h2>
           {error && <div className="alert alert-danger">{error}</div>}
           <form onSubmit={handleSubmit}>
@@ -139,13 +154,14 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
                   id="owners"
                   name="owners"
                   multiple
-                  value={formData.owners}
+                  value={formData.owners}  
                   onChange={handleOwnersChange}
                   className="form-select"
                   style={{ height: '150px' }}
                 >
                   {users.map((user) => (
-                    <option key={user._id} value={user._id}>{user.name}</option>
+                     
+                    <option key={user._id} value={user.name}>{user.name}</option>
                   ))}
                 </select>
               </div>
@@ -185,12 +201,14 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
                   onChange={handleChange}
                   className="form-select"
                 >
+                  <option value="To Do">To Do</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
+                  <option value="Blocked">Blocked</option>  
                 </select>
               </div>
               <div className="col-md-6">
-                <label htmlFor="timeRemaining" className="form-label">Time Remaining:</label>
+                <label htmlFor="timeRemaining" className="form-label">Time to Complete:</label>
                 <div className="input-group">
                   <input
                     id="timeRemaining"
@@ -205,14 +223,22 @@ const TaskDetails = ({ task, onClose, onUpdate, projects, teams, users, tags }) 
                 </div>
               </div>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 d-flex justify-content-end"> 
               <button type="submit" className="btn btn-primary me-2">Save Changes</button>
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-success me-2"  
                 onClick={handleMarkAsComplete}
+                disabled={formData.status === 'Completed'} 
               >
                 Mark as Complete
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onClose} 
+              >
+                Cancel
               </button>
             </div>
           </form>

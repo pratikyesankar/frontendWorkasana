@@ -1,17 +1,17 @@
  import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/Common/PrivateRoute.jsx'; 
-import Login from './components/Auth/Login.jsx';  
-import Signup from './components/Auth/Signup.jsx';  
-import Dashboard from './components/Dashboard/Dashboard.jsx';  
-import ProjectView from './components/Projects/ProjectView.jsx';  
-import TeamView from './components/Teams/TeamView.jsx';  
-import TeamDetails from './components/Teams/TeamDetails.jsx';  
-import TaskList from './components/Tasks/TaskList.jsx';  
+import Login from './components/Auth/Login.jsx'; 
+import Signup from './components/Auth/Signup.jsx'; 
+import Dashboard from './components/Dashboard/Dashboard.jsx'; 
+import ProjectView from './components/Projects/ProjectView.jsx'; 
+import TeamView from './components/Teams/TeamView.jsx'; 
+import TeamDetails from './components/Teams/TeamDetails.jsx'; 
+import TaskList from './components/Tasks/TaskList.jsx'; 
 import ReportsDashboard from './components/Reports/ReportsDashboard.jsx'; 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import './App.css';  
+import './App.css'; 
 
 function App() {
   const token = localStorage.getItem('jwtToken');
